@@ -217,7 +217,29 @@ flag_i0.v的设计目标是：将insert0_flag进行插零延迟，有1处后面�
 zhang可以替换成不含中文的路径，其他建议按照下图处理。<br>
 <img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/file_dir.png" alt="文件路径"></p>
 <h2 id="设计思路"><a class="markdownIt-Anchor" href="#设计思路"></a> 设计思路</h2>
-<p>（挖坑待填）😳</p>
+<p>hdlctra.v（顶层）</p>
+<ul>
+<li>调用insert0实现：需要插零时，数据多保持一个时钟</li>
+<li>用状态机实现，帧头、内容、CRC、帧尾的状态切换，及输出控制</li>
+</ul>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/tra_statemachine.jpg" alt="HDLC发送状态机"></p>
+<p>insert0.v</p>
+<ul>
+<li>
+<p>调用flag_i0实现需要插零时，读使能延迟一个时钟</p>
+</li>
+<li>
+<p>调用insert0_ram实现读写数据间的转换</p>
+</li>
+</ul>
+<p>flag_i0.v</p>
+<p>这个模块是插零设计的关键。</p>
+<ul>
+<li>采用跳地址方式，配合RAM清零操作实现数据比原始多0</li>
+<li>考虑到来两帧通信数据间隔可能较短，而RAM清零需要时间，采用空间换时间方法，通过奇、偶两个RAM乒乓操作，实现时序合理布局。</li>
+</ul>
+<p>值得注意的是，这里只提供精要的设计思路。如果需要了解更多细节，应该结合源码阅读并进行iverilog仿真。</p>
+<p><strong>设计思路不应该是代码含义复述（这违反了DRY原则），而是精粹的设计思路概述。</strong></p>
 <h2 id="软件依赖"><a class="markdownIt-Anchor" href="#软件依赖"></a> 软件依赖</h2>
 <ul>
 <li>仿真必需
