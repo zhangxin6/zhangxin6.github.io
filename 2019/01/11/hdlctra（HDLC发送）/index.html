@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="generator" content="Hexo 3.8.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta name="description" content="HDLC 发送的FPGA设计"><meta name="keywords" content="iverilog"><meta name="author" content="Zhang Xin,undefined"><meta name="copyright" content="Zhang Xin"><title>HDLC 发送的FPGA设计 | null</title><link rel="shortcut icon" href="/melody-favicon.ico"><link rel="stylesheet" href="/css/index.css?version=1.5.6"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css?version=1.5.6"><link rel="dns-prefetch" href="https://cdn.staticfile.org"><link rel="dns-prefetch" href="https://cdn.bootcss.com"><link rel="dns-prefetch" href="https://creativecommons.org"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css"><script src="https://cdn.jsdelivr.net/gh/upupming/gitalk@36368e5dffd049e956cdbbd751ff96c28d8255cf/dist/gitalk.min.js"></script><script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.10.0/js/md5.min.js"></script><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  }
+} </script></head><body><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div id="sidebar"><div class="toggle-sidebar-info text-center"><span data-toggle="Toggle article">Toggle site</span><hr></div><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar"></div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#摘要"><span class="toc-number">1.</span> <span class="toc-text"> 摘要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hdlc协议格式"><span class="toc-number">2.</span> <span class="toc-text"> HDLC协议格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#模块架构"><span class="toc-number">3.</span> <span class="toc-text"> 模块架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#文件依赖"><span class="toc-number">3.1.</span> <span class="toc-text"> 文件依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#模块依赖"><span class="toc-number">3.2.</span> <span class="toc-text"> 模块依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#模块端口"><span class="toc-number">3.3.</span> <span class="toc-text"> 模块端口</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#iverilog仿真结果"><span class="toc-number">4.</span> <span class="toc-text"> iverilog仿真结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#源码使用"><span class="toc-number">5.</span> <span class="toc-text"> 源码使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#设计思路"><span class="toc-number">6.</span> <span class="toc-text"> 设计思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#软件依赖"><span class="toc-number">7.</span> <span class="toc-text"> 软件依赖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#更多"><span class="toc-number">8.</span> <span class="toc-text"> 更多</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#最后"><span class="toc-number">9.</span> <span class="toc-text"> 最后</span></a></li></ol></div></div><div class="author-info hide"><div class="author-info__avatar text-center"><img src="/img/avatar.png"></div><div class="author-info__name text-center">Zhang Xin</div><div class="author-info__description text-center"></div><hr><div class="author-info-articles"><a class="author-info-articles__archives article-meta" href="/archives"><span class="pull-left">Articles</span><span class="pull-right">1</span></a><a class="author-info-articles__tags article-meta" href="/tags"><span class="pull-left">Tags</span><span class="pull-right">1</span></a><a class="author-info-articles__categories article-meta" href="/categories"><span class="pull-left">Categories</span><span class="pull-right">1</span></a></div></div></div><div id="content-outer"><div id="top-container" style="background-image: url(https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/thumb_upleft.jpg)"><div id="page-header"><span class="pull-left"> <a id="site-name" href="/"></a></span><i class="fa fa-bars toggle-menu pull-right" aria-hidden="true"></i><span class="pull-right menus"><a class="site-page" href="/">Home</a><a class="site-page" href="/archives">Archives</a><a class="site-page" href="/tags">Tags</a><a class="site-page" href="/categories">Categories</a></span></div><div id="post-info"><div id="post-title">HDLC 发送的FPGA设计</div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 2019-01-11</time><span class="post-meta__separator">|</span><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/fpga/">fpga</a></div></div></div><div class="layout" id="content-inner"><article id="post"><div class="article-container" id="post-content"><h2 id="摘要"><a class="markdownIt-Anchor" href="#摘要"></a> 摘要</h2>
+<p>关于HDLC 发送的设计思路和源码使用方法。</p>
+<h2 id="hdlc协议格式"><a class="markdownIt-Anchor" href="#hdlc协议格式"></a> HDLC协议格式</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">帧头标志</th>
+<th style="text-align:center">地址</th>
+<th style="text-align:center">控制</th>
+<th style="text-align:center">信息</th>
+<th style="text-align:center">校验</th>
+<th style="text-align:center">帧尾标志</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">4个7E</td>
+<td style="text-align:center">自定义</td>
+<td style="text-align:center">自定义</td>
+<td style="text-align:center">自定义</td>
+<td style="text-align:center">16位CRC</td>
+<td style="text-align:center">4个7E</td>
+</tr>
+</tbody>
+</table>
+<p>注意：<a href="https://baike.baidu.com/item/HDLC%E5%8D%8F%E8%AE%AE" target="_blank" rel="noopener">HDLC</a> 帧头和帧尾只规定至少1个7E，实际用几个属于内部协议。</p>
+<h2 id="模块架构"><a class="markdownIt-Anchor" href="#模块架构"></a> 模块架构</h2>
+<h3 id="文件依赖"><a class="markdownIt-Anchor" href="#文件依赖"></a> 文件依赖</h3>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/hdlc_tra-file-stucture.png" alt="文件依赖结构图"><br>
+注：（蓝字部分是需要使用的设计文件，黑字部分为xilinx ip，只需要指定参数并调用xilinx ip core）。</p>
+<h3 id="模块依赖"><a class="markdownIt-Anchor" href="#模块依赖"></a> 模块依赖</h3>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/hdlc_tra-module-stucture.png" alt="模块结构图"></p>
+<h3 id="模块端口"><a class="markdownIt-Anchor" href="#模块端口"></a> 模块端口</h3>
+<p><strong>hdlctra.v</strong></p>
+
+<table>
+  <tr>   
+    <td>端口类型</td>
+    <td>名称</td>
+    <td>描述</td>    
+    <td>备注</td>
+  </tr>
+  <tr>
+    <td rowspan="5">输入</td>
+    <td>clk</td>
+    <td>数据时钟</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>rst_n</td>
+    <td>复位信号，低有效</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>trastart_flag</td>
+    <td>发送开始信号，持续一段时间</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>db</td>
+    <td>数据个数</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>ramd</td>
+    <td>cpu并行数据</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="2">输出</td>
+    <td>datat</td>
+    <td>满足hdlc格式数据</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>inr</td>
+    <td>发送完成标志</td>
+    <td></td>
+  </tr>
+</table>
+
+<p><strong>insert0.v</strong></p>
+
+<table>
+  <tr>   
+    <td>端口类型</td>
+    <td>名称</td>
+    <td>描述</td>    
+    <td>备注</td>
+  </tr>
+  <tr>
+    <td rowspan="6">输入</td>
+    <td>clk</td>
+    <td>数据时钟</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>rst_n</td>
+    <td>复位信号，低有效</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>trastart_flag</td>
+    <td>发送开始信号，持续一段时间</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>db</td>
+    <td>数据个数</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>ramd</td>
+    <td>cpu并行数据</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>inr</td>
+    <td>发送完成标志</td>
+    <td></td>
+  </tr>    
+  <tr>
+    <td>输出</td>
+    <td>ram_outd</td>
+    <td>当数据需要插零时，多保持1个时钟</td>
+    <td></td>
+  </tr>
+</table>
+
+<p><strong>flag_i0.v</strong></p>
+
+
+<table>
+  <tr>   
+    <td>端口类型</td>
+    <td>名称</td>
+    <td>描述</td>    
+    <td>备注</td>
+  </tr>
+  <tr>
+    <td rowspan="5">输入</td>
+    <td>clk</td>
+    <td>数据时钟</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>rst_n</td>
+    <td>复位信号，低有效</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>insert0_flag</td>
+    <td>插零标记</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>insert0_flag_valid</td>
+    <td>插零标记是否有效</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>inr</td>
+    <td>发送完成标志</td>
+    <td></td>
+  </tr>    
+  <tr>
+    <td>输出</td>
+    <td>insert0_flag_d5</td>
+    <td>插零后的数据</td>
+    <td></td>
+  </tr>
+</table>
+
+<h2 id="iverilog仿真结果"><a class="markdownIt-Anchor" href="#iverilog仿真结果"></a> iverilog仿真结果</h2>
+<p><strong>hdlctra.v</strong><br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/hdlctra_iverilog.png" alt="hdlctra iverilog仿真波形"><br>
+这里发送了4个字节的数据，即16进制的FF、55、FF、AA。<br>
+datat数据为</p>
+<ul>
+<li>01111110（重复4次，即帧头4个7E）</li>
+<li>11111(0)111（0xFF，低位在前，且连续5个1插入1个0）</li>
+<li>10101010（0x55）</li>
+<li>111110111（0xFF）</li>
+<li>01010101（0xAA）</li>
+<li>1000,1000,0001,0000（16位CRC）</li>
+<li>01111110（重复4次，即帧尾4个7E）</li>
+</ul>
+<p><strong>insert0.v</strong><br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/insert0_iverilog.png" alt="insert0 iverilog仿真波形"><br>
+insert0.v的设计目标是：如果数据需要插零，则多持续一个时钟周期。输出有14个时钟的延迟。<br>
+例如：0xFF对应的输入ramd持续8个时钟周期，对应的输出ram_outd持续9个时钟周期。</p>
+<p><strong>flag_i0.v</strong><br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/flagi0_iverilog.png" alt="flag_i0 iverilog仿真波形"><br>
+flag_i0.v的设计目标是：将insert0_flag进行插零延迟，有1处后面插零。输出有5个时钟的延迟。<br>
+例如：001000100<br>
+变成    001（0）0001（0）00</p>
+<h2 id="源码使用"><a class="markdownIt-Anchor" href="#源码使用"></a> 源码使用</h2>
+<p>所有的代码均共享在Github。verilog设计文件在<a href="https://github.com/zhangxin6/iverilog_testbench" target="_blank" rel="noopener">zhangxin6/<em>iverilog_testbench</em></a>，xilinx ip core文件在<a href="https://github.com/zhangxin6/manage_ip" target="_blank" rel="noopener"><em>zhangxin6</em>/<em>manage</em>_<em>ip</em></a><br>
+如果你会使用Github，推荐使用命令行中的Git下载</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git clone git@github.com:zhangxin6/iverilog_testbench.git</span><br><span class="line">git clone git@github.com:zhangxin6/manage_ip.git</span><br></pre></td></tr></table></figure>
+<p>反之，你可以通过上面的链接，通过Download ZIP下载。<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/github_download_zip.png" alt="insert0 iverilog仿真波形"><br>
+这里提供hdlctra_testbench.v及iverilog仿真的hdlctra_testbench.bat供参考。<strong>双击hdlctra_testbench.bat即可实现仿真！</strong></p>
+<p><strong>hdlctra_testbench.bat</strong></p>
+<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line"><span class="built_in">set</span> testbench=hdlctra_testbench</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> iverilog_path=c:/iverilog/bin;</span><br><span class="line"><span class="built_in">set</span> gtkwave_path=c:/iverilog/gtkwave/bin;</span><br><span class="line"><span class="built_in">set</span> <span class="built_in">path</span>=<span class="variable">%iverilog_path%</span><span class="variable">%gtkwave_path%</span><span class="variable">%path%</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="built_in">dir</span>=..</span><br><span class="line"><span class="built_in">set</span> ip_dir=../../manage_ip</span><br><span class="line"><span class="built_in">set</span> batdir=.</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> s1=<span class="variable">%dir%</span>/hdlctra_testbench.v</span><br><span class="line"><span class="built_in">set</span> s2=<span class="variable">%dir%</span>/hdlctra.v</span><br><span class="line"><span class="built_in">set</span> s3=<span class="variable">%dir%</span>/insert0.v</span><br><span class="line"><span class="built_in">set</span> s4=<span class="variable">%dir%</span>/flag_i0.v</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ip1="<span class="variable">%ip_dir%</span>/flag_insert0_ram/sim/flag_insert0_ram.v"</span><br><span class="line"><span class="built_in">set</span> ip2="<span class="variable">%ip_dir%</span>/flag_insert0_ram/simulation/blk_mem_gen_v8_4.v"</span><br><span class="line"><span class="built_in">set</span> ip3="<span class="variable">%ip_dir%</span>/insert0_ram/sim/insert0_ram.v"</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> vivado_dir=C:/Xilinx/Vivado/<span class="number">2018</span>.<span class="number">2</span>/data/verilog/src</span><br><span class="line"><span class="built_in">set</span> vivado_lib="-y<span class="variable">%vivado_dir%</span>" "-y<span class="variable">%vivado_dir%</span>/retarget" "-y<span class="variable">%vivado_dir%</span>/unifast" "-y<span class="variable">%vivado_dir%</span>/unimacro" "-y<span class="variable">%vivado_dir%</span>/unisims" "-y<span class="variable">%vivado_dir%</span>/xeclib"</span><br><span class="line"></span><br><span class="line">iverilog -g2012 -o "<span class="variable">%batdir%</span>/<span class="variable">%testbench%</span>.vvp" <span class="variable">%vivado_lib%</span> <span class="variable">%s1%</span> <span class="variable">%s2%</span> <span class="variable">%s3%</span> <span class="variable">%s4%</span> <span class="variable">%ip1%</span> <span class="variable">%ip2%</span> <span class="variable">%ip3%</span> <span class="variable">%vivado_dir%</span>/glbl.v</span><br><span class="line"></span><br><span class="line">vvp "<span class="variable">%batdir%</span>/<span class="variable">%testbench%</span>.vvp"</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> gtkw_file="<span class="variable">%batdir%</span>/<span class="variable">%testbench%</span>.gtkw"</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">exist</span> <span class="variable">%gtkw_file%</span> (gtkwave <span class="variable">%gtkw_file%</span>) <span class="keyword">else</span> (gtkwave "<span class="variable">%batdir%</span>/<span class="variable">%testbench%</span>.vcd")</span><br><span class="line"></span><br><span class="line"><span class="built_in">pause</span></span><br></pre></td></tr></table></figure>
+<p>里面绝对路径iverilog_path，gtkwave_path，vivado_dir需要根据软件实际安装位置进行调整。<br>
+各个文件的相对路径如有修改，则hdlctra_testbench.bat需要做相应修改。<br>
+zhang可以替换成不含中文的路径，其他建议按照下图处理。<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/file_dir.png" alt="文件路径"></p>
+<h2 id="设计思路"><a class="markdownIt-Anchor" href="#设计思路"></a> 设计思路</h2>
+<p>（挖坑待填）😳</p>
+<h2 id="软件依赖"><a class="markdownIt-Anchor" href="#软件依赖"></a> 软件依赖</h2>
+<ul>
+<li>仿真必需
+<ul>
+<li>vivado &gt; 2015</li>
+<li>iverilog （免费开源HDL 仿真软件）<br>
+<a href="https://blog.csdn.net/husipeng86/article/details/60469543" target="_blank" rel="noopener">iverilog安装使用教程推荐</a></li>
+</ul>
+</li>
+<li>推荐
+<ul>
+<li>Notepad++（查看源码）或Sublime text</li>
+<li>VHDL
+<ul>
+<li>如果你更熟悉VHDL而不是Verilog，可以使用XHDL软件进行转换，你可以支持正版或淘宝购买</li>
+</ul>
+</li>
+<li>操作系统
+<ul>
+<li>Windows 没有任何问题</li>
+<li>理论上Linux也是支持的，但iverlog的设置会有不同（参考iverilog官方文档），文件路径也和Windows不一样，需要探索</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="更多"><a class="markdownIt-Anchor" href="#更多"></a> 更多</h2>
+<ul>
+<li>HDLC接收的FPGA设计（coming soon…）</li>
+<li>远程FPGA及DSP HDLC硬件级实验服务（long after…）</li>
+</ul>
+<h2 id="最后"><a class="markdownIt-Anchor" href="#最后"></a> 最后</h2>
+<p>如果你有任何问题，有以下3种方式给我反馈:</p>
+<ul>
+<li>在下面评论</li>
+<li>去相应的github repo提issue</li>
+<li>发邮件给我，zhangxin_mail163@163.com</li>
+</ul>
+<p>Just feel free to raise a question and have some fun with using this code 😄</p>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Zhang Xin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://zhangxin6.github.io/2019/01/11/hdlctra（HDLC发送）/">https://zhangxin6.github.io/2019/01/11/hdlctra（HDLC发送）/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/iverilog/">iverilog</a></div><div class="addthis_inline_share_toolbox pull-right"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c388b5dc29b982b" async></script><nav id="pagination"></nav><div id="gitalk-container"></div><script>var gitalk = new Gitalk({
+  clientID: '34079ee84460781a4f66',
+  clientSecret: 'e1ffce31e6c705ae1a77bfbfbebb548bac1b57d1',
+  repo: 'zhangxin6.github.io',
+  owner: 'zhangxin6',
+  admin: 'zhangxin6',
+  id: md5(decodeURI(location.pathname)),
+  language: 'zh-CN'
+})
+gitalk.render('gitalk-container')</script></div></div><footer><div class="layout" id="footer"><div class="copyright">&copy;2019 By Zhang Xin</div><div class="framework-info"><span>Driven - </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>Theme - </span><a href="https://github.com/Molunerfinn/hexo-theme-melody"><span>Melody</span></a></div><div class="busuanzi"><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_page_pv"><i class="fa fa-file-o"></i><span id="busuanzi_value_page_pv"></span><span></span></span></div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@latest/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-ui-pack@latest/velocity.ui.min.js"></script><script src="/js/utils.js?version=1.5.6"></script><script src="/js/fancybox.js?version=1.5.6"></script><script src="/js/sidebar.js?version=1.5.6"></script><script src="/js/copy.js?version=1.5.6"></script><script src="/js/fireworks.js?version=1.5.6"></script><script src="/js/transition.js?version=1.5.6"></script><script src="/js/scroll.js?version=1.5.6"></script><script src="/js/head.js?version=1.5.6"></script></body></html>

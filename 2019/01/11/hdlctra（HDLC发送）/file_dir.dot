@@ -1,0 +1,34 @@
+digraph ast{
+	rankdir=LR;
+	fontname = "Microsoft YaHei";
+	fontsize = 10;
+	 
+	node [shape = circle, fontname = "Microsoft YaHei", fontsize = 10];
+	edge [fontname = "Microsoft YaHei", fontsize = 10];
+	node [shape="plaintext"];
+	 
+	zhang [label="zhang"];
+	iverilog_testbench [label="iverilog_testbench"];
+	manage_ip [label="manage_ip"];
+	bat [label="bat"];
+	
+	hdlctra [label="hdlctra.v",fontcolor=blue];
+	insert0 [label="insert0.v",fontcolor=blue];
+	flag_i0 [label="flag_i0.v",fontcolor=blue];
+	hdlctra_testbench [label="hdlctra_testbench.v",fontcolor=blue];
+	hdlctra_testbench_bat[label="hdlctra_testbench.bat",fontcolor=blue];
+	
+	zhang -> iverilog_testbench;
+	zhang -> manage_ip;
+	iverilog_testbench -> bat;
+	
+	iverilog_testbench -> hdlctra;
+	iverilog_testbench -> insert0;
+	iverilog_testbench -> flag_i0;
+	iverilog_testbench -> hdlctra_testbench;
+	bat -> hdlctra_testbench_bat;
+	
+
+	
+}
+ 
