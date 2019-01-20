@@ -1,0 +1,293 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="generator" content="Hexo 3.8.0"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta name="description" content="连通域提取的FPGA设计"><meta name="keywords" content="iverilog"><meta name="author" content="Zhang Xin,undefined"><meta name="copyright" content="Zhang Xin"><title>连通域提取的FPGA设计 | null</title><link rel="shortcut icon" href="/melody-favicon.ico"><link rel="stylesheet" href="/css/index.css?version=1.5.6"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css?version=1.5.6"><link rel="dns-prefetch" href="https://cdn.staticfile.org"><link rel="dns-prefetch" href="https://cdn.bootcss.com"><link rel="dns-prefetch" href="https://creativecommons.org"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.css"><script src="https://cdn.jsdelivr.net/gh/upupming/gitalk@36368e5dffd049e956cdbbd751ff96c28d8255cf/dist/gitalk.min.js"></script><script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.10.0/js/md5.min.js"></script><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  }
+} </script></head><body><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div id="sidebar"><div class="toggle-sidebar-info text-center"><span data-toggle="Toggle article">Toggle site</span><hr></div><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar"></div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#摘要"><span class="toc-number">1.</span> <span class="toc-text"> 摘要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是连通域提取"><span class="toc-number">2.</span> <span class="toc-text"> 什么是连通域提取</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cpu处理存在的问题"><span class="toc-number">3.</span> <span class="toc-text"> CPU处理存在的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fpga能解决这样的问题吗"><span class="toc-number">4.</span> <span class="toc-text"> FPGA能解决这样的问题吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#问题就这么简单吗"><span class="toc-number">5.</span> <span class="toc-text"> 问题就这么简单吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何知道设计是可行的强大的测试"><span class="toc-number">6.</span> <span class="toc-text"> 如何知道设计是可行的（强大的测试）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#测试用例1"><span class="toc-number">6.1.</span> <span class="toc-text"> 测试用例1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#测试用例2"><span class="toc-number">6.2.</span> <span class="toc-text"> 测试用例2</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#是时候安利一波源码及仿真使用了"><span class="toc-number">7.</span> <span class="toc-text"> 是时候安利一波源码及仿真使用了</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#模块架构"><span class="toc-number">7.1.</span> <span class="toc-text"> 模块架构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#文件依赖"><span class="toc-number">7.1.1.</span> <span class="toc-text"> 文件依赖</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#模块依赖"><span class="toc-number">7.1.2.</span> <span class="toc-text"> 模块依赖</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#模块端口"><span class="toc-number">7.1.3.</span> <span class="toc-text"> 模块端口</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#源码使用"><span class="toc-number">8.</span> <span class="toc-text"> 源码使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#设计思路细节"><span class="toc-number">9.</span> <span class="toc-text"> 设计思路细节</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#软件依赖"><span class="toc-number">10.</span> <span class="toc-text"> 软件依赖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#最后"><span class="toc-number">11.</span> <span class="toc-text"> 最后</span></a></li></ol></div></div><div class="author-info hide"><div class="author-info__avatar text-center"><img src="/img/avatar.png"></div><div class="author-info__name text-center">Zhang Xin</div><div class="author-info__description text-center"></div><hr><div class="author-info-articles"><a class="author-info-articles__archives article-meta" href="/archives"><span class="pull-left">Articles</span><span class="pull-right">2</span></a><a class="author-info-articles__tags article-meta" href="/tags"><span class="pull-left">Tags</span><span class="pull-right">1</span></a><a class="author-info-articles__categories article-meta" href="/categories"><span class="pull-left">Categories</span><span class="pull-right">1</span></a></div></div></div><div id="content-outer"><div id="top-container" style="background-image: url(https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/thumb_upleft.jpg)"><div id="page-header"><span class="pull-left"> <a id="site-name" href="/"></a></span><i class="fa fa-bars toggle-menu pull-right" aria-hidden="true"></i><span class="pull-right menus"><a class="site-page" href="/">Home</a><a class="site-page" href="/archives">Archives</a><a class="site-page" href="/tags">Tags</a><a class="site-page" href="/categories">Categories</a></span></div><div id="post-info"><div id="post-title">连通域提取的FPGA设计</div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 2019-01-20</time><span class="post-meta__separator">|</span><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/fpga/">fpga</a></div></div></div><div class="layout" id="content-inner"><article id="post"><div class="article-container" id="post-content"><h2 id="摘要"><a class="markdownIt-Anchor" href="#摘要"></a> 摘要</h2>
+<p>关于连通域提取算法的FPGA设计。与传统基于CPU的设计比具有低延时、资源消耗少的优点。</p>
+<h2 id="什么是连通域提取"><a class="markdownIt-Anchor" href="#什么是连通域提取"></a> 什么是连通域提取</h2>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/connect_show.jpg" alt="连通域提取演示"></p>
+<p>连通域提取一般是针对二值图像（只有0和1），它就是把连通着的1的部分标记出来。至于什么是连通，又分为4连通与8连通。我们采用8连通，更符合人的直觉。</p>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/detail_connect.jpg" alt="连通域matlab处理结果"></p>
+<p>可以看到，总共有12个区域。顺序排列是从图像的最左边开始，面积依次为38,93,167,32…</p>
+<p>中心为[50.6579,147.6842]，[57.2581,15.8495]… 坐标原点为图像左上角，先X后Y。</p>
+<p>你可以下载下面的图像，在本地的matlab上，跑下面这段.m脚本，获得更直观的理解，matlab将此功能封装在regionprops函数，可以说是非常简单了。<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/data.jpg" alt="点击图像，右键另存为data.jpg即可"><br>
+matlab脚本如下：你需要更改第3行的图像路径</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">clc; clear all; close all;</span><br><span class="line"></span><br><span class="line">src_img = <span class="string">'C:/Users/zhang/Desktop/data.jpg'</span>;</span><br><span class="line">img = imread(src_img);</span><br><span class="line"></span><br><span class="line">T = graythresh(img);</span><br><span class="line">bw_img = im2bw(img, T);</span><br><span class="line"></span><br><span class="line">img_reg = regionprops(bw_img,  <span class="string">'area'</span>, <span class="string">'boundingbox'</span>);</span><br><span class="line"></span><br><span class="line">areas = [img_reg.Area];</span><br><span class="line">rects = <span class="built_in">cat</span>(<span class="number">1</span>,  img_reg.BoundingBox);</span><br><span class="line"></span><br><span class="line"><span class="built_in">figure</span>(<span class="number">1</span>),</span><br><span class="line">imshow(bw_img);title(<span class="string">'测试数据'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">figure</span>(<span class="number">2</span>),</span><br><span class="line">imshow(bw_img);title(<span class="string">'连通域边界标记'</span>);</span><br><span class="line"><span class="keyword">for</span> <span class="built_in">i</span> = <span class="number">1</span>:<span class="built_in">size</span>(rects, <span class="number">1</span>)</span><br><span class="line">    rectangle(<span class="string">'position'</span>, rects(<span class="built_in">i</span>, :), <span class="string">'EdgeColor'</span>, <span class="string">'r'</span>);</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">region_detail = regionprops(bw_img);  <span class="comment">% see this varible in workspace for detail </span></span><br><span class="line">endl=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h2 id="cpu处理存在的问题"><a class="markdownIt-Anchor" href="#cpu处理存在的问题"></a> CPU处理存在的问题</h2>
+<ul>
+<li>需要加载完一张图像，才开始处理，算法延时高</li>
+<li>需要存储一张图像，存储资源消耗大</li>
+</ul>
+<h2 id="fpga能解决这样的问题吗"><a class="markdownIt-Anchor" href="#fpga能解决这样的问题吗"></a> FPGA能解决这样的问题吗</h2>
+<ul>
+<li>图像边传输，边处理，一个一个像素进行处理</li>
+<li>事实上连通域只与周围的像素有关，存储周围的像素即可</li>
+</ul>
+<h2 id="问题就这么简单吗"><a class="markdownIt-Anchor" href="#问题就这么简单吗"></a> 问题就这么简单吗</h2>
+<p>我们看这样一张图片，80即图像中亮的部分<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/4.txt.png" alt="V形图片"></p>
+<p>从左上开始，按照行方向进行逐像素扫描。我们会得到这样的结果(2,2)(第一个连通域)、(2,8)（第二个连通域），（3,3)(第一个连通域，与（2,2）连通)、（3,7)(第二个连通域，与（2,8）连通）…</p>
+<p>这样一直下去，到（5,5）就会有一个神奇的变化。（5,5）起到了纽带作用，将两片独立的连通域连接到了一起，我们前面标记的如（2,2）与（2,8）实际是连通的，但是在第二行的局部看，我们不可能知道。</p>
+<p>这样就需要一个连通域合并判断。合并之后需要将所有第二个连通域（简称标号为2）转成标号是1，这依然有可能需要大量的存储器（极限是一幅图），这对于FPGA设计是不现实的！</p>
+<p><s>深入思考之后</s>😳反复尝试之后，可以发现，只需要对上一行的标号2连通域（而不是所有的标号2连通域）更新为标号1就可以了，之后对两个连通域的信息进行合并（如面积、灰度和、边界），而其他内部的元素标号改不改是没有影响的。</p>
+<p>这样就变成了需要一行的存储器，即便对于1080p这样的分辨率，一行1920个像素，FPGA存储器是足够的且微不足道的（这都不是事儿）。</p>
+<p>我相信大部分人看完这样的描述，依然是一头雾水😅。对于一个算法的理解，一般是这样的过程。这里只是初步看一下，看不懂没有关系（非常正常），这里提供可信的已经完成的代码，先确定代码是好使的，至于为什么这样做就能简单好使，需要你自己去调一调、试一试。</p>
+<h2 id="如何知道设计是可行的强大的测试"><a class="markdownIt-Anchor" href="#如何知道设计是可行的强大的测试"></a> 如何知道设计是可行的（强大的测试）</h2>
+<p>代码好不好使，当然是看测试用例了。给几组输入，看看结果，与MATLAB或者人的直观感觉，对比一下就ok。</p>
+<h3 id="测试用例1"><a class="markdownIt-Anchor" href="#测试用例1"></a> 测试用例1</h3>
+<p>我们用前面的V形图像作为输入，来看一下iverilog仿真的结果<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/v_iverilog_show.jpg" alt="V形图像仿真结果"></p>
+<p>这里注意几点</p>
+<ul>
+<li>所有数据是在fs下降沿（一帧图像完成后）间隔2个时钟开始输出，处理是边接收边处理的，延时低。</li>
+<li>e_label是连通域标号，e_upm（外接矩形上边界），e_dw（外接矩形下边界），e_le（外接矩形左边界），e_ri（外接矩形右边界），e_num_gray（连通域像素个数），e_sum_gray（连通域像素总和）。</li>
+<li>这里输出了两个连通域，但标号2像素个数是0,这样的连通域是被合并过的连通域，后续可以删除。</li>
+<li>连通域1的信息是最终的结果，7个像素，总和560（7*80），上边界2，下边界5，左边界2，右边界8。结果是正确的。</li>
+</ul>
+<p>我们深入细节，看一下算法的过程：<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/v_detail_show.jpg" alt="V形图像仿真细节"></p>
+<p>标号1（label1）的连通域像素个数（num_gray1）变化为1-2-3-7。标号2（label2）的连通域像素个数（num_gray1）变化为1-2-3-0：起到了连通域合并的效果。</p>
+<p>进一步分析，外接矩形边界（upm,dw,le,ri）的变化，理解程序的执行过程。</p>
+<p><strong>觉得这样的测试，Too Young Too Simple? 可能程序的正确只是一种巧合？</strong></p>
+<h3 id="测试用例2"><a class="markdownIt-Anchor" href="#测试用例2"></a> 测试用例2</h3>
+<p>我们采用lena图二值化后进行测试。</p>
+<p>考虑到iverilog仿真的速度问题，我们采用32*32低一点的分辨率及进行测试，但程序是适用于1080p的，从逻辑的角度讲，两者没有差别，只是资源消耗有差别。</p>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/5.txt.png" alt="32*32 二值化后LENA"></p>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/lena_32_show.jpg" alt="lena_32_32仿真结果"></p>
+<p>​       这个结果，通过直觉来看，总共应该有7个连通域。像素个数分别是61,1,222,98,10,1,2。Looks not bad。</p>
+<p>我们跟matlab对比一下<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/matlab_lena_32.jpg" alt="matlab_lena_32_32仿真结果"></p>
+<ul>
+<li>Area 对应像素个数，两者是一致的。</li>
+<li>Bounding Box 与这里的格式不一致，matlab里的Bounding Box [x1,x2,x3,x4] , x3, x4 表示的是矩形的长和宽像素数=（dw-upm+1）or =（ri-le+1）。x1,x2是矩形左上角位置。matlab上向上取整后，与（le,upm）一致。个人感觉左上角不应是小数。对matlab机制，这里不做深入讨论（其实我也不懂😳）。</li>
+</ul>
+<h2 id="是时候安利一波源码及仿真使用了"><a class="markdownIt-Anchor" href="#是时候安利一波源码及仿真使用了"></a> 是时候安利一波源码及仿真使用了</h2>
+<h3 id="模块架构"><a class="markdownIt-Anchor" href="#模块架构"></a> 模块架构</h3>
+<h4 id="文件依赖"><a class="markdownIt-Anchor" href="#文件依赖"></a> 文件依赖</h4>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/connected_get-file-stucture.jpg" alt="文件结构图"><br>
+注：（蓝字部分是需要使用的设计文件，黑字部分为xilinx ip，只需要指定参数并调用xilinx ip core）。</p>
+<h4 id="模块依赖"><a class="markdownIt-Anchor" href="#模块依赖"></a> 模块依赖</h4>
+<p><img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/connected_get-module-stucture.jpg" alt="模块结构图"></p>
+<h4 id="模块端口"><a class="markdownIt-Anchor" href="#模块端口"></a> 模块端口</h4>
+<p><strong>connect_domain_get.v</strong></p>
+
+
+<table>
+  <tr>   
+    <td>端口类型</td>
+    <td>名称</td>
+    <td>描述</td>    
+    <td>备注</td>
+  </tr>
+  <tr>
+    <td rowspan="7">输入</td>
+    <td>clk</td>
+    <td>数据时钟</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>rst_n</td>
+    <td>复位信号，低有效</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>fs</td>
+    <td>场同步</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>hs</td>
+    <td>行同步</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>data</td>
+    <td>图像数据</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>hang_cnt_out</td>
+    <td>当前像素是第几行</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>lie_cnt_out</td>
+    <td>当前像素是第几列</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td rowspan="7">输出</td>
+    <td>e_label</td>
+    <td>连通域标号</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>e_le</td>
+    <td>连通域外接矩形左边界</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>e_ri</td>
+    <td>连通域外接矩形右边界</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>e_upm</td>
+    <td>连通域外接矩形上边界</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>e_dw</td>
+    <td>连通域外接矩形下边界</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>e_sum_gray</td>
+    <td>连通域图像灰度总和</td>
+    <td></td>
+  </tr>       
+  <tr>
+    <td>e_num_gray</td>
+    <td>连通域图像像素个数</td>
+    <td></td>
+  </tr> 
+</table>  
+
+<p><strong>get_around.v</strong></p>
+
+<table>
+  <tr>   
+    <td>端口类型</td>
+    <td>名称</td>
+    <td>描述</td>    
+    <td>备注</td>
+  </tr>
+  <tr>
+    <td rowspan="5">输入</td>
+    <td>clk</td>
+    <td>数据时钟</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>rst_n</td>
+    <td>复位信号，低有效</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>fs</td>
+    <td>场同步</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>hs</td>
+    <td>行同步</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>data</td>
+    <td>图像数据</td>
+    <td></td>
+  </tr> 
+  <tr>
+     <td rowspan="7">输出</td>
+    <td>middle</td>
+    <td>当前像素（正中间）</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>up_right1</td>
+    <td>右上像素</td>
+    <td></td>
+  </tr> 
+  <tr>
+    <td>up_middle1</td>
+    <td>中上像素</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>up_left1</td>
+    <td>左上像素</td>
+    <td></td>
+  </tr>   
+  <tr>
+    <td>left</td>
+    <td>左边像素</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>fs_neg</td>
+    <td>场同步下降沿</td>
+    <td></td>
+  </tr>  
+  <tr>
+    <td>hs_neg</td>
+    <td>行同步下降沿</td>
+    <td></td>
+  </tr>  
+</table>
+ 
+<h2 id="源码使用"><a class="markdownIt-Anchor" href="#源码使用"></a> 源码使用</h2>
+<p>所有的代码均共享在Github。verilog设计文件在<a href="https://github.com/zhangxin6/iverilog_testbench" target="_blank" rel="noopener">zhangxin6/<em>iverilog_testbench</em></a>，xilinx ip core文件在<a href="https://github.com/zhangxin6/manage_ip" target="_blank" rel="noopener"><em>zhangxin6</em>/<em>manage</em>_<em>ip</em></a><br>
+如果你会使用Github，推荐使用命令行中的Git下载</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git clone git@github.com:zhangxin6/iverilog_testbench.git</span><br><span class="line">git clone git@github.com:zhangxin6/manage_ip.git</span><br></pre></td></tr></table></figure>
+<p>反之，你可以通过上面的链接，通过Download ZIP下载。<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/github_download_zip.png" alt="insert0 iverilog仿真波形"><br>
+这里提供file_io_testbench.v及iverilog仿真的file_io_testbench.bat供参考。<strong>双击file_io_testbench.bat即可实现仿真！</strong></p>
+<p><strong>file_io_testbench.bat</strong></p>
+<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line"><span class="built_in">set</span> testbench=file_io_testbench</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> iverilog_path=c:\iverilog\bin;</span><br><span class="line"><span class="built_in">set</span> gtkwave_path=c:\iverilog\gtkwave\bin;</span><br><span class="line"><span class="built_in">set</span> <span class="built_in">path</span>=<span class="variable">%iverilog_path%</span><span class="variable">%gtkwave_path%</span><span class="variable">%path%</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="built_in">dir</span>=C:\Users\zhang\iverilog_testbench</span><br><span class="line"><span class="built_in">set</span> ip_dir=C:\Users\zhang\manage_ip</span><br><span class="line"><span class="built_in">set</span> batdir=C:\Users\zhang\iverilog_testbench\bat</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> s1=<span class="variable">%dir%</span>\file_io_testbench.v</span><br><span class="line"><span class="built_in">set</span> s2=<span class="variable">%dir%</span>\data_gen.v</span><br><span class="line"><span class="built_in">set</span> s3=<span class="variable">%dir%</span>\connect_domain_get.v</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> ip1="<span class="variable">%ip_dir%</span>\delay_1hang\simulation\blk_mem_gen_v8_4.v"</span><br><span class="line"><span class="built_in">set</span> ip2="<span class="variable">%ip_dir%</span>\delay_1hang\sim\delay_1hang.v"</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> vivado_dir=C:\Xilinx\Vivado\<span class="number">2018</span>.<span class="number">2</span>\data\verilog\src</span><br><span class="line"><span class="built_in">set</span> vivado_lib="-y<span class="variable">%vivado_dir%</span>" "-y<span class="variable">%vivado_dir%</span>\retarget" "-y<span class="variable">%vivado_dir%</span>\unifast" "-y<span class="variable">%vivado_dir%</span>\unimacro" "-y<span class="variable">%vivado_dir%</span>\unisims" "-y<span class="variable">%vivado_dir%</span>\xeclib"</span><br><span class="line"></span><br><span class="line">iverilog -g2012 -o "<span class="variable">%batdir%</span>\<span class="variable">%testbench%</span>.vvp" <span class="variable">%vivado_lib%</span> <span class="variable">%s1%</span> <span class="variable">%s2%</span> <span class="variable">%s3%</span> <span class="variable">%ip1%</span> <span class="variable">%ip2%</span> <span class="variable">%vivado_dir%</span>/glbl.v</span><br><span class="line"></span><br><span class="line">vvp "<span class="variable">%batdir%</span>\<span class="variable">%testbench%</span>.vvp"</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> gtkw_file="<span class="variable">%batdir%</span>\<span class="variable">%testbench%</span>.gtkw"</span><br><span class="line"><span class="keyword">if</span> <span class="keyword">exist</span> <span class="variable">%gtkw_file%</span> (gtkwave <span class="variable">%gtkw_file%</span>) <span class="keyword">else</span> (gtkwave "<span class="variable">%batdir%</span>\<span class="variable">%testbench%</span>.vcd")</span><br><span class="line"></span><br><span class="line"><span class="built_in">pause</span></span><br></pre></td></tr></table></figure>
+<p>里面绝对路径iverilog_path，gtkwave_path，vivado_dir需要根据软件实际安装位置进行调整。<br>
+各个文件的相对路径如有修改，则hdlctra_testbench.bat需要做相应修改。<br>
+zhang可以替换成不含中文的路径，其他建议按照下图处理。<br>
+<img src="https://zhangxin-1258487717.cos.ap-beijing.myqcloud.com/file_dir_connect.jpg" alt="文件路径"></p>
+<h2 id="设计思路细节"><a class="markdownIt-Anchor" href="#设计思路细节"></a> 设计思路细节</h2>
+<p>挖坑待填😳</p>
+<h2 id="软件依赖"><a class="markdownIt-Anchor" href="#软件依赖"></a> 软件依赖</h2>
+<ul>
+<li>仿真必需
+<ul>
+<li>vivado &gt; 2015</li>
+<li>iverilog （免费开源HDL 仿真软件）<br>
+<a href="https://blog.csdn.net/husipeng86/article/details/60469543" target="_blank" rel="noopener">iverilog安装使用教程推荐</a></li>
+</ul>
+</li>
+<li>推荐
+<ul>
+<li>Notepad++（查看源码）或Sublime text</li>
+<li>VHDL
+<ul>
+<li>如果你更熟悉VHDL而不是Verilog，可以使用XHDL软件进行转换，你可以支持正版或淘宝购买</li>
+</ul>
+</li>
+<li>操作系统
+<ul>
+<li>Windows 没有任何问题</li>
+<li>理论上Linux也是支持的，但iverlog的设置会有不同（参考iverilog官方文档），文件路径也和Windows不一样，需要探索</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="最后"><a class="markdownIt-Anchor" href="#最后"></a> 最后</h2>
+<p>如果你有任何问题，有以下3种方式给我反馈:</p>
+<ul>
+<li>在下面评论</li>
+<li>去相应的<a href="https://github.com/zhangxin6/iverilog_testbench" target="_blank" rel="noopener">github repo</a>提issue</li>
+<li>发邮件给我，zhangxin_mail163@163.com</li>
+</ul>
+<p>Just feel free to raise a question and have some fun with using this code 😄</p>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Zhang Xin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://zhangxin6.github.io/2019/01/20/connected_regions_labeling（连通域提取）/">https://zhangxin6.github.io/2019/01/20/connected_regions_labeling（连通域提取）/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/iverilog/">iverilog</a></div><div class="addthis_inline_share_toolbox pull-right"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5c388b5dc29b982b" async></script><nav id="pagination"><div class="next-post pull-right"><a href="/2019/01/11/hdlctra（HDLC发送）/"><span>HDLC 发送的FPGA设计</span><i class="fa fa-chevron-right"></i></a></div></nav><div id="gitalk-container"></div><script>var gitalk = new Gitalk({
+  clientID: '34079ee84460781a4f66',
+  clientSecret: 'e1ffce31e6c705ae1a77bfbfbebb548bac1b57d1',
+  repo: 'zhangxin6.github.io',
+  owner: 'zhangxin6',
+  admin: 'zhangxin6',
+  id: md5(decodeURI(location.pathname)),
+  language: 'zh-CN'
+})
+gitalk.render('gitalk-container')</script></div></div><footer><div class="layout" id="footer"><div class="copyright">&copy;2019 By Zhang Xin</div><div class="framework-info"><span>Driven - </span><a href="http://hexo.io"><span>Hexo</span></a><span class="footer-separator">|</span><span>Theme - </span><a href="https://github.com/Molunerfinn/hexo-theme-melody"><span>Melody</span></a></div><div class="busuanzi"><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script><span id="busuanzi_container_page_pv"><i class="fa fa-file-o"></i><span id="busuanzi_value_page_pv"></span><span></span></span></div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@latest/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-ui-pack@latest/velocity.ui.min.js"></script><script src="/js/utils.js?version=1.5.6"></script><script src="/js/fancybox.js?version=1.5.6"></script><script src="/js/sidebar.js?version=1.5.6"></script><script src="/js/copy.js?version=1.5.6"></script><script src="/js/fireworks.js?version=1.5.6"></script><script src="/js/transition.js?version=1.5.6"></script><script src="/js/scroll.js?version=1.5.6"></script><script src="/js/head.js?version=1.5.6"></script></body></html>
